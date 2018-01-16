@@ -1,5 +1,6 @@
 module Oscar
 
-# package code goes here
+using Hecke
+using Singular
 
 end # module
