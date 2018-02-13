@@ -1,5 +1,9 @@
 #stuff for ideals 
 
+doc"""
+    groebner_basis(I::MPolyIdl) -> Array{MPoly, 1}
+> Finds a Groebner basis for $I$.
+"""
 function groebner_basis(I::MPolyIdl)
   if !haskeys(I, :std)
     I.std = groebner(I.gens)
@@ -8,13 +12,18 @@ function groebner_basis(I::MPolyIdl)
   return I.std
 end
 
+doc"""
+    in(a::MPoly, I::MPolyIdl) -> Bool
+> Tests if $a$ is an element of $I$. If neccessary, a Groebner basis of $I$
+> will be computed.
+"""
 function in(a::MPoly, I::MPolyIdl)
   check_parent()
   #easy:
   if a in I.gens
     return true
   end
-  # hard
+  # hard...
 
   g = groebner_basis(I)
   
