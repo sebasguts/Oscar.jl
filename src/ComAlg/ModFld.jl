@@ -21,6 +21,10 @@ function -(a::ModFieldElem, b::ModFieldElem)
   return a.parent(a.coeff .- b.coeff)
 end
 
+function -(a::ModFieldElem{T}, b::ModFieldElem{T}) where T
+  return ModFieldElem{T}(a.parent, a.coeff .- b.coeff)
+end
+
 function *(r::FieldElem, a::ModFieldElem)
 end
 
