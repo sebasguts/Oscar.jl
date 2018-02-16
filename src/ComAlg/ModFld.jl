@@ -61,7 +61,7 @@ function hom(M::ModField, N::ModField, im::Array{ModFieldElem, 1})
 end
 
 function hom(M::ModField, N::ModField)
-  @assure M.ring == N.ring #TODO: map to finite field??
+  @assert M.ring == N.ring #TODO: map to finite field??
   return ModField(M.ring, M.dim * N.dim), hom_map
 end
 

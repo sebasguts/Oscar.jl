@@ -1,4 +1,4 @@
-mutable struct MPolyIdlSet{T} where T <: MPolyElem{ <: RingElem}
+mutable struct MPolyIdlSet{T <: MPolyElem{ <: RingElem}}
   R::MPolyRing{T}
   function MPolyIdlSet{T}(R::MPolyRing{T})
     return new(R)
@@ -9,7 +9,7 @@ function show(io::IO, I::MPolyIdlSet)
   println(io, "Set of ideals of $(I.R)\n")
 end
 
-mutable struct MPolyIdl{T} where T <: MPolyElem{<:RingElem} #Field?
+mutable struct MPolyIdl{T <: MPolyElem{ <:RingElem}}
   gens::Array{T, 1} # initial generators
   parent::MPolyRing{T}
   std::Array{T, 1} # a Groebner basis is known/ computed
@@ -29,11 +29,11 @@ end
 
 
 ######################################################################
-mutable struct ModField{T <: FieldElem}
-  ring::Field
+mutable struct ModField{T <: Nemo.FieldElem}
+  ring::Nemo.Field
   dim::Int
 
-  function ModField{T}(R::Ring, n::Int)
+  function ModField(R, n::Int) 
     r = new()
     r.ring = R
     r.dim = n
@@ -41,11 +41,11 @@ mutable struct ModField{T <: FieldElem}
   end
 end
 
-function show(io::IO, M::ModField)
+function Base.show{T}(io::IO, M::ModField{T})
   println(io, "free module of rank $(M.dim) over $(M.ring)\n")
 end
 
-mutable struct ModFieldElem{T <: FieldElem}
+mutable struct ModFieldElem{T <: Nemo.FieldElem}
   coeff::Array{T, 1} # TODO: figure out how to declare a matrix...
   parent::ModField{T}
 
@@ -57,18 +57,18 @@ mutable struct ModFieldElem{T <: FieldElem}
   end
 end
 
-function show(io::IO, x::ModFieldElem)
+function Base.show(io::IO, x::ModFieldElem)
   println(io, x)
 end
 
 
-mutable struct ModFieldToModFieldMor <: Map{ModField, ModField}
-  header::MapHeader
-  map::Matrix
+mutable struct ModFieldToModFieldMor{T <: Nemo.FieldElem} <: Map{ModField, ModField}
+  header::Hecke.MapHeader
+  map::MatElem{T}
 
-  function ModFieldToModFieldMor(M::ModField, N::ModField, map::Matrix)
+  function ModFieldToModFieldMor(M::ModField, N::ModField, map::MatElem{T})
     r = new()
-    r.header = MapHeader(M, N, im, pre)
+    r.header = Hecke.MapHeader(M, N)
     r.map = map
     return r
   end
