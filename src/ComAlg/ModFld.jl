@@ -36,9 +36,6 @@ function addeq!(a::ModFieldElem, b::ModFieldElem)
   return add!(a, a, b)
 end
 
-function (M::ModField)(a::Array)
-end
-
 function add(a::ModFieldElem)
 end
 

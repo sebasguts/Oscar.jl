@@ -1,6 +1,6 @@
 mutable struct MPolyIdlSet{T <: MPolyElem{ <: RingElem}}
   R::MPolyRing{T}
-  function MPolyIdlSet{T}(R::MPolyRing{T})
+  function MPolyIdlSet{T}(R::MPolyRing{T}) where T
     return new(R)
   end
 end
@@ -16,7 +16,7 @@ mutable struct MPolyIdl{T <: MPolyElem{ <:RingElem}}
   ishomogenous::Bool
   hilbert::Any #PowerSeries
 
-  function MPolyIdl{T}(gens::Array{T, 1})
+  function MPolyIdl{T}(gens::Array{T, 1}) where T
     r = new()
     r.gens = gens
     return r
@@ -33,12 +33,17 @@ mutable struct ModField{T <: Nemo.FieldElem}
   ring::Nemo.Field
   dim::Int
 
-  function ModField(R, n::Int) 
+  function ModField{T}(R, n::Int) where T <: Nemo.FieldElem
     r = new()
     r.ring = R
     r.dim = n
     return r
   end
+end
+
+
+function vector_space(K::Nemo.Field, n::Int, t::Type=elem_type(K))
+  return ModField{t}(K, n)
 end
 
 function Base.show{T}(io::IO, M::ModField{T})
@@ -49,7 +54,7 @@ mutable struct ModFieldElem{T <: Nemo.FieldElem}
   coeff::Array{T, 1} # TODO: figure out how to declare a matrix...
   parent::ModField{T}
 
-  function ModFieldElem{T}(M::ModField, c::Array{T, 1})
+  function ModFieldElem{T}(M::ModField{T}, c::Array{T, 1}) where T <: Nemo.FieldElem
     r = new()
     r.parent = M
     r.coeff = c
@@ -57,8 +62,12 @@ mutable struct ModFieldElem{T <: Nemo.FieldElem}
   end
 end
 
+function (V::ModField{T})(c::Array{T, 1}) where T <: Nemo.FieldElem
+  v = ModFieldElem{T}(V, c)
+end
+
 function Base.show(io::IO, x::ModFieldElem)
-  println(io, x)
+  println(io, x.coeff)
 end
 
 
@@ -66,7 +75,7 @@ mutable struct ModFieldToModFieldMor{T <: Nemo.FieldElem} <: Map{ModField, ModFi
   header::Hecke.MapHeader
   map::MatElem{T}
 
-  function ModFieldToModFieldMor(M::ModField, N::ModField, map::MatElem{T})
+  function ModFieldToModFieldMor{T}(M::ModField{T}, N::ModField{T}, map::MatElem{T}) where T
     r = new()
     r.header = Hecke.MapHeader(M, N)
     r.map = map
