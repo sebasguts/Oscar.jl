@@ -1,5 +1,7 @@
 #fin gen (=free) modules over fields.
 
+import Base: +
+
 function sub(M::ModField, a::Array{ModFieldElem, 1})
 end
 
@@ -9,8 +11,8 @@ end
 function subset(M::ModField, N::ModField)
 end
 
-function +(a::ModFieldElem, b::ModFieldElem)
-  return ModFieldElem(a.parent, a.coeff .+ b.coeff)
+function +(a::ModFieldElem{T}, b::ModFieldElem{T}) where T
+  return ModFieldElem{T}(a.parent, a.coeff .+ b.coeff)
 end
 
 function -(a::ModFieldElem, b::ModFieldElem)
