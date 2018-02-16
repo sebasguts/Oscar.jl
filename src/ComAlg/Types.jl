@@ -1,3 +1,8 @@
+import Base: show
+
+export vector_space, ModField, ModFieldElem, ModFieldToModFieldMor, free_module
+
+
 mutable struct MPolyIdlSet{T <: MPolyElem{ <: RingElem}}
   R::MPolyRing{T}
   function MPolyIdlSet{T}(R::MPolyRing{T}) where T
@@ -46,8 +51,12 @@ function vector_space(K::Nemo.Field, n::Int, t::Type=elem_type(K))
   return ModField{t}(K, n)
 end
 
-function Base.show{T}(io::IO, M::ModField{T})
-  println(io, "free module of rank $(M.dim) over $(M.ring)\n")
+function free_module(K::Nemo.Field, n::Int)
+  return vector_space(K, n)
+end
+
+function show{T}(io::IO, M::ModField{T})
+  print(io, "free module of rank $(M.dim) over $(M.ring)\n")
 end
 
 mutable struct ModFieldElem{T <: Nemo.FieldElem}
@@ -66,10 +75,9 @@ function (V::ModField{T})(c::Array{T, 1}) where T <: Nemo.FieldElem
   v = ModFieldElem{T}(V, c)
 end
 
-function Base.show(io::IO, x::ModFieldElem)
-  println(io, x.coeff)
+function show(io::IO, x::ModFieldElem)
+  print(io, "vector: ", x.coeff)
 end
-
 
 mutable struct ModFieldToModFieldMor{T <: Nemo.FieldElem} <: Map{ModField, ModField}
   header::Hecke.MapHeader
@@ -77,7 +85,10 @@ mutable struct ModFieldToModFieldMor{T <: Nemo.FieldElem} <: Map{ModField, ModFi
 
   function ModFieldToModFieldMor{T}(M::ModField{T}, N::ModField{T}, map::MatElem{T}) where T
     r = new()
-    r.header = Hecke.MapHeader(M, N)
+    function image(x::ModFieldElem)
+      return N(map*Nemo.matrix(coeff_field(M), dim(M), 1, x.coeff))
+    end
+    r.header = Hecke.MapHeader(M, N, image)
     r.map = map
     return r
   end
