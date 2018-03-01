@@ -94,6 +94,12 @@ mutable struct ModFieldToModFieldMor{T <: Nemo.FieldElem} <: Map{ModField, ModFi
   end
 end
 
+function Base.show(io::IO, f::ModFieldToModFieldMor)
+  println(io, "Map with following data")
+  print(io, "Domain:\n$(domain(f))")
+  print(io, "Codomain:\n$(codomain(f))")
+  print(io, "Map:\n$(f.map)")
+end
 
 #############################################################
 # same again for Euc, ModDed
