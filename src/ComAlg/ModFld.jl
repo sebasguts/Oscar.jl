@@ -122,10 +122,7 @@ function hom(M::ModFree, N::ModFree)
 end
 
 function sub(M::ModFree{T}, a::Array{ModFreeElem{T}, 1}) where T <: Nemo.FieldElem
-  x = []
-  for y = a
-    append!(x, y.coeff)
-  end
+  x = [ c for y in a for c in y.coeff ]
   mat = Nemo.matrix(coeff_ring(M), length(a), dim(M), x)
   rk = Nemo.rref!(mat)
   S = ModFree{T}(coeff_ring(M), rk)
