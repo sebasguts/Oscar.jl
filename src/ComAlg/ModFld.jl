@@ -119,7 +119,17 @@ function hom(M::ModField, N::ModField)
   return ModField(M.ring, M.dim * N.dim), hom_map
 end
 
-function sub(M::ModField, a::Array{ModFieldElem, 1})
+function sub(M::ModField{T}, a::Array{ModFieldElem{T}, 1}) where T <: Nemo.FieldElem
+  x = []
+  for y = a
+    append!(x, y.coeff)
+  end
+  mat = Nemo.matrix(coeff_field(M), length(a), dim(M), x)
+  rk = Nemo.rref!(mat)
+  S = ModField{T}(coeff_field(M), rk)
+  mat = Nemo.sub(mat, 1:rk, 1:dim(M))
+  morph = ModFieldToModFieldMor{elem_type(coeff_field(M))}(S, M, mat)
+  S, morph
 end
 
 function quo(M::ModField, a::Array{ModFieldElem, 1})
@@ -127,5 +137,4 @@ end
 
 function subset(M::ModField, N::ModField)
 end
-
 
