@@ -16,17 +16,24 @@ function -(a::ModFreeElem, b::ModFreeElem)
   return a.parent(a.coeff .- b.coeff)
 end
 
-function *(r::RingElem, a::ModFreeElem)
+function *(r::T, a::ModFreeElem{T}) where T <: RingElem
   return a.parent(r .* a.coeff)
 end
 
-function *(r::Union{Integer, fmpz}, a::ModFreeElem)
+function *(r::Integer, a::ModFreeElem)
   return coeff_ring(parent(a))(r)*a
 end
 
-function *(r::Rational, a::ModFreeElem)  # cannot add fmpq - Rational is already dodgy: if
-                                          # the field is FlintQQ, this recurses
+function *(r::Rational, a::ModFreeElem)
   return coeff_ring(parent(a))(r)*a
+end
+
+function *(r::fmpz, a::ModFreeElem)
+  return coeff_ring(parent(a))(r) * a
+end
+
+function *(r::fmpq, a::ModFreeElem)
+  return coeff_ring(parent(a))(r) * a
 end
 
 function -(a::ModFreeElem)
@@ -88,7 +95,13 @@ function hom(M::ModFree{T}, N::ModFree{T}, im::Array{ModFreeElem{T}, 1}) where T
 end
 
 function (M::ModFree)(m::Nemo.MatElem)
-  return M([m[i,1] for i=1:dim(M)])
+  if rows(m) == 1
+    return M([m[1,i] for i=1:dim(M)])
+  elseif cols(m) == 1
+    return M([m[i,1] for i=1:dim(M)])
+  else
+    error("matrix must have one row or column only")
+  end
 end
 
 function (M::ModFree)(m::Array)

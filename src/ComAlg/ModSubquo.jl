@@ -54,4 +54,56 @@ function reduce_mod_groebner!(a::Array{T, 1}, M::ModSub{T}) where T
   return a
 end
 
+ngens(M::ModSub) = rows(M.gen)
+ngens(M::ModSubQuo) = ngens(M.num)
+Nemo.parent(e::ModSubQuoElem) = e.parent
 
+function Nemo.elem_type(M::ModSubQuo{T}) where T <: RingElem
+  ModSubQuoElem{T}
+end
+
+function Nemo.elem_type(::Type{ModSubQuo{T}}) where T <: RingElem
+  ModSubQuoElem{T}
+end
+
+function (M::ModSubQuo)(m::Nemo.MatElem)
+  if rows(M) == 1
+    return M([m[1,i] for i=1:ngens(M)])
+  elseif cols(M) == 1
+    return M([m[i,1] for i=1:ngens(M)])
+  else
+    error("matrix must be one rows or column only")
+  end
+end
+
+function (M::ModSubQuo)(m::Array)
+  return M(elem_type(coeff_ring(M))[x for x = m])
+end
+
+
+coeff_ring(M::ModSubQuo) = base_ring(M.num.gen)
+
++(e::ModSubQuoElem, f::ModSubQuoElem) = parent(e)(e.coeff .+ f.coeff)
+-(e::ModSubQuoElem) = parent(e)(-e.coeff )
+-(e::ModSubQuoElem, f::ModSubQuoElem) = parent(e)(e.coeff .- f.coeff)
+*(a::T, f::ModSubQuoElem{T}) where T <: RingElem = parent(e)(a .* e.coeff)
+
+function ==(e::ModSubQuoElem, f::ModSubQuoElem)
+  error("not implemented yet")
+end
+
+function Nemo.sub(M::ModFree{T}, v::Array{ModFreeElem{T}, 1}) where T <: RingElem
+  x = []
+  for y = v
+    append!(x, y.coeff)
+  end
+  mat = Nemo.matrix(coeff_ring(M), length(v), dim(M), x)
+
+  S = ModSub{T}(mat)
+  SQ = ModSubQuo{T}()
+  SQ.num = S
+  return SQ, ModSubQuoToFreeMor{T}(SQ, M, eye(mat))
+end
+
+function Nemo.sub(M::ModSubQuo{T}, v::Array{ModSubQuoElem{T}, 1}) where T <: RingElem
+end
