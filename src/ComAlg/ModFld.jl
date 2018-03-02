@@ -109,7 +109,7 @@ function basis(M::ModFree)
   return a
 end
 
-function gens(M::ModFree)
+function Nemo.gens(M::ModFree)
   return basis(M)
 end
 
@@ -121,7 +121,7 @@ function hom(M::ModFree, N::ModFree)
   return ModFree(M.ring, M.dim * N.dim), hom_map
 end
 
-function sub(M::ModFree{T}, a::Array{ModFreeElem{T}, 1}) where T <: Nemo.FieldElem
+function Nemo.sub(M::ModFree{T}, a::Array{ModFreeElem{T}, 1}) where T <: Nemo.FieldElem
   x = [ c for y in a for c in y.coeff ]
   mat = Nemo.matrix(coeff_ring(M), length(a), dim(M), x)
   rk = Nemo.rref!(mat)
@@ -131,7 +131,7 @@ function sub(M::ModFree{T}, a::Array{ModFreeElem{T}, 1}) where T <: Nemo.FieldEl
   S, morph
 end
 
-function quo(M::ModFree, a::Array{ModFreeElem, 1})
+function Hecke.quo(M::ModFree, a::Array{ModFreeElem, 1})
 end
 
 function subset(M::ModFree, N::ModFree)

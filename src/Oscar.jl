@@ -1,5 +1,6 @@
 module Oscar
-
+using AbstractAlgebra
+using Nemo
 using Hecke
 using Singular
 
