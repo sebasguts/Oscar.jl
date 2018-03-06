@@ -15,6 +15,7 @@ function ModFreeLattice(R::Nemo.Ring)
   L = Hecke.RelLattice{ModFree{elem_type(R)}, Nemo.MatElem{elem_type(R)}}()
   L.zero = zero_matrix(R, 0,0)
   L.mult = *
+  L.make_id = M -> identity_matrix(coeff_ring(M), ngens(M))
   ModFreeLattices[WR] = L
   return L
 end
