@@ -1,6 +1,42 @@
 #fin gen (=free) modules over fields.
 import Base: +, -, *, //, ==, div, zero, iszero, setindex!, getindex, parent, hash
 
+
+############################################
+# relation lattice, ie. sub and quo and their connections
+############################################
+
+const ModFreeLattices = Dict{WeakRef, Hecke.RelLattice{ModFree{T}, Nemo.MatElem{T}} where {T <: Nemo.RingElem}}()
+function ModFreeLattice(R::Nemo.Ring)
+  WR = WeakRef(R)
+  if haskey(ModFreeLattices, WR)
+    return ModFreeLattices[WR]
+  end
+  L = Hecke.RelLattice{ModFree{elem_type(R)}, Nemo.MatElem{elem_type(R)}}()
+  L.zero = zero_matrix(R, 0,0)
+  L.mult = *
+  ModFreeLattices[WR] = L
+  return L
+end
+
+function has_hom(M::ModFree{T}, N::ModFree{T}) where {T <: Nemo.RingElem}
+  if coeff_ring(M) != coeff_ring(N)
+    error("modules need to be over the same ring")
+  end
+  fl, mat = Hecke.can_map_into(ModFreeLattice(coeff_ring(M)), M, N)
+  return fl, hom(M, N, mat)
+end
+
+function has_common_overstructure(M::ModFree{T}, N::ModFree{T}) where {T <: Nemo.RingElem}
+  if coeff_ring(M) != coeff_ring(N)
+    error("modules need to be over the same ring")
+  end
+  lf, V, m1, m2 = Hecke.can_map_into_overstructure(ModFreeLattice(coeff_ring(M)), M, N)
+  return lf, hom(M, V, m1), hom(N, V, m2)
+end
+############################################
+
+
 coeff_field(M::ModFree{<:FieldElem}) = M.ring
 coeff_ring(M::ModFree) = M.ring
 dim(M::ModFree) = M.dim
@@ -85,13 +121,16 @@ function setindex!(a::ModFreeElem, i::Int, x::Union{RingElem, Integer})
   a.coeff[i] = x
 end
 
+function hom(M::ModFree{T}, N::ModFree{T}, mat::Nemo.MatElem{T}) where T <: Nemo.RingElem
+  return ModFreeToModFreeMor{elem_type(coeff_ring(M))}(M, N, mat)
+end
 function hom(M::ModFree{T}, N::ModFree{T}, im::Array{ModFreeElem{T}, 1}) where T <: Nemo.RingElem
-  x = []
+  x = T[]
   for y = im
     append!(x, y.coeff)
   end
   mat = Nemo.matrix(coeff_ring(M), dim(N), dim(M), x)
-  return ModFreeToModFreeMor{elem_type(coeff_ring(M))}(M, N, mat)
+  return hom(M, N, mat)
 end
 
 function (M::ModFree)(m::Nemo.MatElem)
@@ -141,6 +180,8 @@ function Nemo.sub(M::ModFree{T}, a::Array{ModFreeElem{T}, 1}) where T <: Nemo.Fi
   S = ModFree{T}(coeff_ring(M), rk)
   mat = Nemo.sub(mat, 1:rk, 1:dim(M))
   morph = ModFreeToModFreeMor{elem_type(coeff_ring(M))}(S, M, mat)
+  L = ModFreeLattice(coeff_ring(M))
+  Hecke.Base.append!(L, S, M, mat)
   S, morph
 end
 
