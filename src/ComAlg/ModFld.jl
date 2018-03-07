@@ -1,6 +1,6 @@
 #fin gen (=free) modules over fields.
 import Base: +, -, *, //, ==, div, zero, iszero, setindex!, getindex, parent, hash
-export inner_sum, outer_sum, issub, coeff_ring, coeff_field
+export inner_sum, outer_sum, issub, coeff_ring, coeff_field, isin, isisomorphic
 
 
 ############################################
@@ -28,6 +28,9 @@ doc"""
 > If no such map is known, {{{false}}} and a unusable map are returned.
 """
 function has_hom(M::ModFree{T}, N::ModFree{T}) where {T <: RingElem}
+  if M === N
+    return true, hom(M, M, ModFreeLattice(coeff_ring(M)).make_id(M))
+  end
   if coeff_ring(M) != coeff_ring(N)
     error("modules need to be over the same ring")
   end
@@ -44,6 +47,10 @@ doc"""
 function has_common_overstructure(M::ModFree{T}, N::ModFree{T}) where {T <: RingElem}
   if coeff_ring(M) != coeff_ring(N)
     error("modules need to be over the same ring")
+  end
+  if M === N
+    id = hom(M, M, ModFreeLattice(coeff_ring(M)).make_id(M))
+    return true, M, id, id
   end
   lf, V, m1, m2 = Hecke.can_map_into_overstructure(ModFreeLattice(coeff_ring(M)), M, N)
   return lf, V, hom(M, V, m1), hom(N, V, m2)
@@ -222,6 +229,19 @@ function (M::ModFree)(m::Array)
   return M(elem_type(R)[R(x) for x = m])
 end
 
+function (M::ModFree{T})(m::ModFreeElem{T}) where T
+  fl, h = has_hom(parent(m), M)
+  if fl
+    return h(m)
+  else
+    fl, n = isin(m, M)
+    if !fl
+      error("element is not in the module")
+    end
+    return n
+  end
+end
+
 doc"""
     basis(M::ModFree) -> Array{ModFreeElem, 1}
 > The (canonical) basis of $M$.
@@ -388,6 +408,25 @@ function Base.in(v::ModFreeElem{T}, M::ModFree{T}) where T <: Nemo.FieldElem
 end
 
 doc"""
+    isin(v::ModFreeElem{T}, M::ModFree{T}) where T <: Nemo.FieldElem -> Bool, ModFreeElem
+> Tests is $v$ is an element of $M$, tracing the sub-module lattice. Return $v$ in $M$ if successful.
+"""
+function isin(v::ModFreeElem{T}, M::ModFree{T}) where T <: Nemo.FieldElem
+  fl, mp = has_hom(parent(v), M)
+  if fl
+    return true, mp(v)
+  end
+  fl, O, m1, m2 = has_common_overstructure(parent(v), M)
+  if !fl
+    return false, v
+  end
+  vO = m1(v)
+  rk, b = rref(m2.map)
+  q, w = reduce_divmod!(vO.coeff, b)
+  return iszero(q), M(w)
+end
+
+doc"""
     issub(M::ModFree, N::ModFree) -> Bool, Map
 > Tests is $M$ is a submodule of $N$. If this the case, the injection map is returned as well.
 """
@@ -446,5 +485,63 @@ function Base.intersect(M::ModFree, N::ModFree)
   end
 
   return sub(M, I)[1]
+end
+
+doc"""
+    isisomorphic(M::ModFree{T}, N::ModFree{T}) where T <: RingElem -> Bool, Map
+> Tests if $M$ and $N$ are isomorphic, ie. have the same dimension. In this case
+> an isomorphism is returned as well.
+"""
+function Hecke.isisomorphic(M::ModFree{T}, N::ModFree{T}) where T <: RingElem
+  R = coeff_ring(M)
+  if R != coeff_ring(N)
+    error("modules need to be defined over the same ring")
+  end
+  if dim(M) == dim(N)
+    return true, hom(M, N, identity_matrix(coeff_ring(M), dim(M)))
+  else
+    return false, hom(M, M, identity_matrix(coeff_ring(M), dim(M)))
+  end
+end
+
+doc"""
+    ==(M::ModFree{T}, N::ModFree{T}) where T -> Bool
+> Tests if $M$ and $N$ are equal as submodules.
+"""
+function ==(M::ModFree{T}, N::ModFree{T}) where T
+  R = coeff_ring(M)
+  if M === N
+    return true
+  end
+  if R != coeff_ring(N)
+    error("modules need to be defined over the same ring")
+  end
+  if dim(M) != dim(N)
+    return false
+  end
+  fl, O, m1, m2 = has_common_overstructure(M, N)
+  if !fl
+    return false
+  end
+  return rref(m1.map) == rref(m2.map)
+end
+ 
+
+div(a::Singular.n_Zp, b::Singular.n_Zp) = divexact(a, b)
+
+hash(m::ModFreeToModFreeMor, h::UInt) = hash(hash(m.map, UInt(10)), h)
+
+function haspreimage(M::ModFreeToModFreeMor{T}, a::ModFreeElem{T}) where T <: FieldElem
+  if isdefined(M, :imap)
+    return true, preimage(M, a)
+  end
+
+  R = coeff_ring(M)
+  fl, p = cansolve(M.map', matrix(M, dim(M), 1, a.coeff))
+  if fl
+    return true, domain(M)(p)
+  else
+    return false, domain(M)(p)
+  end
 end
 
