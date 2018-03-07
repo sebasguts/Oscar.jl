@@ -58,11 +58,11 @@ function free_module(R::Nemo.Ring, n::Int)
 end
 
 function show(io::IO, M::ModFree)
-  print(io, "free module of rank $(M.dim) over $(M.ring)\n")
+  print(io, "Free Module of rank $(M.dim) over $(M.ring)\n")
 end
 
 function show(io::IO, M::ModFree{<:FieldElem})
-  print(io, "vector space of dim $(M.dim) over $(M.ring)\n")
+  print(io, "Vector Space of dim $(M.dim) over $(M.ring)\n")
 end
 
 mutable struct ModFreeElem{T <: Nemo.RingElem}
@@ -91,10 +91,13 @@ mutable struct ModFreeToModFreeMor{T <: Nemo.FieldElem} <: Map{ModFree, ModFree}
 
   function ModFreeToModFreeMor{T}(M::ModFree{T}, N::ModFree{T}, map::Nemo.MatElem{T}) where T
     r = new()
-    function image(x::ModFreeElem)
+    (M::typeof(r))(v::ModFreeElem{T}) = image(M, v)
+
+    function im(x::ModFreeElem)
       return N(Nemo.matrix(coeff_field(M), 1, dim(M), x.coeff)*map)
     end
-    r.header = Hecke.MapHeader(M, N, image)
+
+    r.header = Hecke.MapHeader(M, N, im)
     r.map = map
     return r
   end
@@ -153,7 +156,7 @@ mutable struct ModSubQuo{T <: RingElem} # any ring where we can do "std": Euc, M
   den::Union{ModSub{T}, ModSubLazy{T}}
   isfinalized::Bool
 
-  function ModSubQuo()
+  function ModSubQuo{T}( ; ignore::Type = T) where T <: RingElem
     r = new()
     r.isfinalized = false
   end
@@ -172,7 +175,7 @@ mutable struct ModSubQuoElem{T <: RingElem}
   coeff::Array{T, 1} # TODO: figure out how to declare a matrix...
   parent::ModSubQuo{T}
 
-  function ModSubQuoElem(M::ModSubQuo{T}, c::Array{T, 1})
+  function ModSubQuoElem{T}(M::ModSubQuo{T}, c::Array{T, 1}) where T <: RingElem
     @assert length(c) == ngens(M)
     r = new()
     r.parent = M
@@ -195,10 +198,12 @@ mutable struct ModSubQuoToFreeMor{T <: Nemo.RingElem} <: Map{ModSubQuo{T}, ModFr
 
   function ModSubQuoToFreeMor{T}(M::ModSubQuo{T}, N::ModFree{T}, map::MatElem{T}) where T
     r = new()
-    function image(x::ModSubQuoElem)
+    (M::typeof(r))(v::ModSubQuoElem{T}) = image(M, v)
+
+    function im(x::ModSubQuoElem)
       return N(Nemo.matrix(coeff_ring(M), 1, ngens(M), x.coeff)*map)
     end
-    r.header = Hecke.MapHeader(M, N, image)
+    r.header = Hecke.MapHeader(M, N, im)
     r.map = map
     return r
   end

@@ -39,6 +39,12 @@ end
 function reduce_mod_groebner!(a::Array{T, 1}, M::ModSub{T}) where T
   groebner_assure!(M)
   bas = M.gen_gb
+  return reduce_mod!(a, bas)
+end
+
+function reduce_mod!(a::Array{T, 1}, M::Nemo.MatElem{T}) where T <: Nemo.RingElem
+  @assert isrref(M)
+  bas = M
   for i=1:rows(bas)
     j = 1
     while iszero(bas[i,j]) 
@@ -53,6 +59,35 @@ function reduce_mod_groebner!(a::Array{T, 1}, M::ModSub{T}) where T
   end
   return a
 end
+
+function reduce_divmod_groebner!(a::Array{T, 1}, M::ModSub{T}) where T
+  groebner_assure!(M)
+  bas = M.gen_gb
+  return reduce_divmod!(a, bas)
+end
+
+function reduce_divmod!(a::Array{T, 1}, M::Nemo.MatElem{T}) where T <: Nemo.RingElem
+  @assert isrref(M)
+  bas = M
+  Q = T[]
+  z = zero(base_ring(M))
+  for i=1:rows(bas)
+    j = 1
+    while iszero(bas[i,j]) 
+      j += 1
+    end
+    p = j
+    q = div(a[p], bas[i, p])
+    push!(Q, q)
+    while j <= cols(bas)
+      a[j] -= q*bas[i,j]
+      j += 1
+    end
+  end
+  return a, Q
+end
+
+
 
 ngens(M::ModSub) = rows(M.gen)
 ngens(M::ModSubQuo) = ngens(M.num)
