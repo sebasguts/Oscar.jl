@@ -218,7 +218,8 @@ function (M::ModFree)(m::Nemo.MatElem)
 end
 
 function (M::ModFree)(m::Array)
-  return M(elem_type(coeff_ring(M))[x for x = m])
+  R = coeff_ring(M)
+  return M(elem_type(R)[R(x) for x = m])
 end
 
 doc"""
