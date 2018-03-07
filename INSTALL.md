@@ -57,7 +57,7 @@ Afterwards, execute the following lines in julia:
 ```
 Pkg.add( "Cxx" )
 using Cxx
-``
+```
 
 ## Install Polymake and Polymake.jl
 
