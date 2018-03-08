@@ -534,17 +534,18 @@ div(a::Singular.n_Zp, b::Singular.n_Zp) = divexact(a, b)
 
 hash(m::ModFreeToModFreeMor, h::UInt) = hash(hash(m.map, UInt(10)), h)
 
-function Hecke.haspreimage(M::ModFreeToModFreeMor{T}, a::ModFreeElem{T}) where T <: FieldElem
-  if isdefined(M, :imap)
-    return true, preimage(M, a)
+function Hecke.haspreimage(h::ModFreeToModFreeMor{T}, a::ModFreeElem{T}) where T <: FieldElem
+  if isdefined(h, :imap)
+    return true, preimage(h, a)
   end
 
+  M = domain(h)
   R = coeff_ring(M)
-  fl, p = cansolve(M.map', matrix(M, dim(M), 1, a.coeff))
+  fl, p = cansolve(h.map', matrix(R, dim(M), 1, a.coeff))
   if fl
-    return true, domain(M)(p)
+    return true, M(p)
   else
-    return false, domain(M)(p)
+    return false, M(p)
   end
 end
 
