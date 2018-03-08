@@ -91,7 +91,6 @@ mutable struct ModFreeToModFreeMor{T <: Nemo.FieldElem} <: Map{ModFree, ModFree}
 
   function ModFreeToModFreeMor{T}(M::ModFree{T}, N::ModFree{T}, map::Nemo.MatElem{T}) where T
     r = new()
-    (M::typeof(r))(v::ModFreeElem{T}) = image(M, v)
 
     function im(x::ModFreeElem)
       return N(Nemo.matrix(coeff_field(M), 1, dim(M), x.coeff)*map)
@@ -102,6 +101,7 @@ mutable struct ModFreeToModFreeMor{T <: Nemo.FieldElem} <: Map{ModFree, ModFree}
     return r
   end
 end
+(M::ModFreeToModFreeMor{T})(v::ModFreeElem{T}) where T <: RingElem = image(M, v)
 
 function Base.show(io::IO, f::ModFreeToModFreeMor)
   println(io, "Map with following data")
@@ -198,8 +198,6 @@ mutable struct ModSubQuoToFreeMor{T <: Nemo.RingElem} <: Map{ModSubQuo{T}, ModFr
 
   function ModSubQuoToFreeMor{T}(M::ModSubQuo{T}, N::ModFree{T}, map::MatElem{T}) where T
     r = new()
-    (M::typeof(r))(v::ModSubQuoElem{T}) = image(M, v)
-
     function im(x::ModSubQuoElem)
       return N(Nemo.matrix(coeff_ring(M), 1, ngens(M), x.coeff)*map)
     end
@@ -208,6 +206,8 @@ mutable struct ModSubQuoToFreeMor{T <: Nemo.RingElem} <: Map{ModSubQuo{T}, ModFr
     return r
   end
 end
+
+(M::ModSubQuoToFreeMor{T})(v::ModSubQuoElem{T}) where T <: RingElem = image(M, v)
 
 function Base.show(io::IO, f::ModSubQuoToFreeMor)
   println(io, "Map with following data")
