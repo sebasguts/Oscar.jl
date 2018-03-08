@@ -504,6 +504,9 @@ function Hecke.isisomorphic(M::ModFree{T}, N::ModFree{T}) where T <: RingElem
   end
 end
 
+Base.isequal(M::ModFree, N::ModFree) = M === N
+Base.hash(M::ModFree, h::UInt) = hash(object_id(M), h)
+
 doc"""
     ==(M::ModFree{T}, N::ModFree{T}) where T -> Bool
 > Tests if $M$ and $N$ are equal as submodules.
@@ -531,7 +534,7 @@ div(a::Singular.n_Zp, b::Singular.n_Zp) = divexact(a, b)
 
 hash(m::ModFreeToModFreeMor, h::UInt) = hash(hash(m.map, UInt(10)), h)
 
-function haspreimage(M::ModFreeToModFreeMor{T}, a::ModFreeElem{T}) where T <: FieldElem
+function Hecke.haspreimage(M::ModFreeToModFreeMor{T}, a::ModFreeElem{T}) where T <: FieldElem
   if isdefined(M, :imap)
     return true, preimage(M, a)
   end
