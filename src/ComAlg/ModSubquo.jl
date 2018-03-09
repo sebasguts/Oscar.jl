@@ -124,7 +124,22 @@ coeff_ring(M::ModSubQuo) = base_ring(M.num.gen)
 *(a::T, f::ModSubQuoElem{T}) where T <: RingElem = parent(e)(a .* e.coeff)
 
 function ==(e::ModSubQuoElem, f::ModSubQuoElem)
-  error("not implemented yet")
+  M = parent(e)
+  @assert parent(f) == M
+
+  if !isdefined(M, :num) && !isdefined(M, :den)
+    return e.coeff .+ f.coeff
+  end
+
+  R = coeff_ring(M)
+
+  #if syz is known, a reduction modulo syz will also work
+  a = matrix(R, 1, ngens(M), (e-f).coeff) * M.num.gen
+  aa = collect(a)
+  if isdefined(M, :den)
+    reduce_mod_groebner!(aa, M.den)
+  end
+  return iszero(aa)
 end
 
 function Nemo.sub(M::ModFree{T}, v::Array{ModFreeElem{T}, 1}) where T <: RingElem
@@ -132,12 +147,33 @@ function Nemo.sub(M::ModFree{T}, v::Array{ModFreeElem{T}, 1}) where T <: RingEle
   for y = v
     append!(x, y.coeff)
   end
+  R = coeff_ring(M)
   mat = Nemo.matrix(coeff_ring(M), length(v), dim(M), x)
 
   S = ModSub{T}(mat)
   SQ = ModSubQuo{T}()
   SQ.num = S
-  return SQ, ModSubQuoToFreeMor{T}(SQ, M, eye(mat))
+  return SQ, ModSubQuoToFreeMor{T}(SQ, M, identity_matrix(R, length(v)))
+end
+
+function Hecke.quo(M::ModFree{T}, N::ModSub{T}) where T <: RingElem
+  SQ = ModSubQuo{T}()
+  SQ.den = N
+  return SQ
+end
+
+function Hecke.quo(M::ModSubQuo{T}, N::ModSub{T}) where T <: RingElem
+  SQ = ModSubQuo{T}()
+  if isdefined(M, :num)
+    SQ.num = M.num
+  end  
+  if isdefined(M, :den)
+    SQ.den = inner_sum(M.den, N)[1]
+  else
+    SQ.den = N
+  end
+
+  return SQ
 end
 
 function Nemo.sub(M::ModSubQuo{T}, v::Array{ModSubQuoElem{T}, 1}) where T <: RingElem

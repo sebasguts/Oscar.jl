@@ -159,6 +159,7 @@ mutable struct ModSubQuo{T <: RingElem} # any ring where we can do "std": Euc, M
   function ModSubQuo{T}( ; ignore::Type = T) where T <: RingElem
     r = new()
     r.isfinalized = false
+    return r
   end
 end
 
