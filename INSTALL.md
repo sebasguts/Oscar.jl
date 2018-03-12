@@ -64,9 +64,9 @@ using Cxx
 Execute the following commands in your shell to install polymake
 
 ```
-wget https://polymake.org/lib/exe/fetch.php/download/polymake-3.2r1.tar.bz2
-tar xf polymake-3.2r1.tar.bz2
-rm polymake-3.2r1.tar.bz2
+wget https://polymake.org/lib/exe/fetch.php/download/polymake-3.2r2.tar.bz2
+tar xf polymake-3.2r2.tar.bz2
+rm polymake-3.2r2.tar.bz2
 cd polymake-3.2
 ./configure
 ninja -C build/Opt install
