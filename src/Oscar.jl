@@ -31,6 +31,8 @@ println(" ... version 0.0.2")
 println(" ... there is absolutely no warranty...")
 println("(c) 2018 by Bill Hart, Claus Fieker, Andreas Steenpass")
 
+include ("OscarTraits.jl")
+
 # include("ComAlg.jl")
 
 # Make all Map-s callable...
