@@ -82,56 +82,7 @@ end
 #
 #########################################################################################
 
-if false
-
-# S = Abelian
-# T = Finite
-# U = Cyclic
-
-struct GroupTrait{S, T, U}
-end
-
-mutable struct Group
-   trait::GroupTrait
-   a::Int # some data
-end
-
-function Abelian!(tr::GroupTrait{S, T, U}) where {S, T, U}
-   return GroupTrait{true, T, U}()
-end
-
-function Abelian!(g::Group)
-   g.trait = Abelian!(g.trait)
-end
-
-function centre(g::Group, tr::GroupTrait{S, T, U}) where {S, T, U}
-   if g.a < 2
-      Abelian!(g)
-   end
-   return Group(GroupTrait{true, T, U}(), g.a + 1)
-end
-
-function centre(g::Group)
-   return centre(g, g.trait)
-end
-
-function blah(g::Group, tr::GroupTrait{true, T, U}) where {T, U}
-   return 1
-end
-
-function blah(g::Group, tr::GroupTrait{false, true, U}) where {T, U}
-   return 2
-end
-
-function blah(g::Group, tr::GroupTrait)
-   return 3
-end
-
-function blah(g::Group)
-   return blah(g, g.trait)
-end
-
-else
+# Abelian, Finite, Cyclic
 
 struct OscarTrait{S, T}
 end
@@ -152,11 +103,11 @@ is_oscar_type(::Type{Group}) = true
 const IsAbelian = OscarTrait{:Group, Tuple{true, S, T} where {S, T}}
 const IsFinite = OscarTrait{:Group, Tuple{S, true, T} where {S, T}}
 
-function centre(G::Group, T::Type{<:IsAbelian})
-   return 1
+function Abelian!(G::Group)
+   G.trait &= IsAbelian
 end
 
-macro oscar_function(f)
+macro oscar(f)
    if f.head != :function
       error("Not a function in oscar_function")
    end
@@ -203,5 +154,3 @@ macro oscar_function(f)
     end
 end
 
-   
-end 
